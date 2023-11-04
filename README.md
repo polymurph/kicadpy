@@ -7,6 +7,9 @@ Kicad Scripts
 
 https://www.reddit.com/r/KiCad/comments/unl7s1/how_to_install_python_packages_for_kicad_scripting/
 
+
+For Windows go to the folder where Kicad program files are places on your system. In the designated folder open the command promt. There you can run '''pip install <module name>'''
+
 ## Ideas
 
 https://jeffmcbride.net/kicad-track-layout/
