@@ -10,9 +10,10 @@ import ezdxf
 import math
 import pcbnew
 
+# command to be executed inside the Kicad scripting shell sothat this script will be executed
 #exec(open('dxfToRoute.py').read())
 
-def get_all_entities_from_dxf(file_path):
+def getAllEntitiesFromDXF(file_path):
     entities = []
 
     doc = ezdxf.readfile(file_path)
@@ -52,7 +53,14 @@ def routeARC(
     entry += ") (tstamp ))"
     return entry
 
-def calculate_arc_points(arc):
+
+
+def calculateLinePoints(line):
+    startPoint = line.dxf.start
+    endPoint = line.dxf.end
+    return startPoint, endPoint
+
+def calculateArcPoints(arc):
     center = arc.dxf.center
     radius = arc.dxf.radius
     start_angle = math.radians(arc.dxf.start_angle)
@@ -75,6 +83,19 @@ def calculate_arc_points(arc):
     )
 
     return start_point, mid_point, end_point
+
+def addTrackLine(    
+        boardObject,
+        startPoint_mm,
+        endPoint_mm,
+        width_mm,
+        layer):
+    line = pcbnew.PCB_TRACK(board)
+    line.SetStart(pcbnew.VECTOR2I(int(startPoint_mm[0] * 1E6), int(startPoint_mm[1] * 1E6)))
+    line.SetEnd(pcbnew.VECTOR2I(int(endPoint_mm[0] * 1E6), int(endPoint_mm[1] * 1E6)))
+    line.SetLayer(layer)
+    line.SetWidth(int(width_mm * 1e6))
+    boardObject.Add(line)
 
 def addTrackArc(
         boardObject,
@@ -100,7 +121,7 @@ if 0:
 
         for entity in msp.query('ARC'):
             #print(f"Type: {entity.dxftype()}, Handle: {entity.dxf.handle}")
-            data = calculate_arc_points(entity)
+            data = calculateArcPoints(entity)
             #print(data)
             print(routeARC(data[0],data[1], data[2], 0, "F.Cu", "test"))
 
@@ -115,7 +136,11 @@ if __name__ == "__main__":
     msp = doc.modelspace()
 
     for entity in msp.query('ARC'):
-        start, mid, end = calculate_arc_points(entity)
-        addTrackArc(board,start,mid,end,1,pcbnew.F_Cu)
+        start, mid, end = calculateArcPoints(entity)
+        addTrackArc(board,start,mid,end,0.02,pcbnew.F_Cu)
+    
+    for entity in msp.query('LINE'):
+        start, end = calculateLinePoints(entity)
+        addTrackLine(board,start,end,0.02,pcbnew.F_Cu)
     
 pcbnew.Refresh()
