@@ -1,4 +1,4 @@
-# KicadScripts
+# Kicad Scripts
 Kicad Scripting toolbox
 
 ## Questions
