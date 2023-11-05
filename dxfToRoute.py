@@ -1,10 +1,6 @@
-
-import sys
-
 # findout hoe to append system files for ezdxf when using this script for kicad
 # find out what virtualenv is 
 # https://www.youtube.com/watch?v=6Ya8McK-Z3Q
-sys.path.append('C:/Users/Edwin/AppData/Roaming/Python/Python38/site-packages/ezdxf')
 
 import ezdxf
 import math
@@ -24,37 +20,6 @@ def getAllEntitiesFromDXF(file_path):
 
     return entities
 
-def routeARC(
-        startPosition,
-        midPosition,
-        endPosition,
-        width,
-        layer,
-        net):
-    entry = "(arc (start "
-    entry += str(startPosition[0])
-    entry += " "
-    entry += str(startPosition[1])
-    entry += ") (mid "
-    entry += str(midPosition[0])
-    entry += " "
-    entry += str(midPosition[1])
-    entry += ") (end "
-    entry += str(endPosition[0])
-    entry += " "
-    entry += str(endPosition[1])
-    entry += ") (width "
-    entry += str(width)
-    entry += ") (layer \""
-    entry += layer
-    #entry += "\") (net "
-    #entry += net
-    entry += "\") (net 0"
-    entry += ") (tstamp ))"
-    return entry
-
-
-
 def calculateLinePoints(line):
     startPoint = line.dxf.start
     endPoint = line.dxf.end
@@ -63,8 +28,12 @@ def calculateLinePoints(line):
 def calculateArcPoints(arc):
     center = arc.dxf.center
     radius = arc.dxf.radius
+    is_clockwise = arc.dxf.extrusion.z < 0
     start_angle = math.radians(arc.dxf.start_angle)
     end_angle = math.radians(arc.dxf.end_angle)
+
+
+
 
     start_point = (
         center.x + radius * math.cos(start_angle),
@@ -75,12 +44,17 @@ def calculateArcPoints(arc):
         center.x + radius * math.cos(end_angle),
         center.y + radius * math.sin(end_angle)
     )
-
     mid_angle = (start_angle + end_angle) / 2
-    mid_point = (
-        center.x + radius * math.cos(mid_angle),
-        center.y + radius * math.sin(mid_angle)
-    )
+    if start_angle > end_angle:
+        mid_point = (
+            center.x + radius * math.cos(mid_angle),
+            center.y - radius * math.sin(mid_angle)
+        )
+    else:
+        mid_point = (
+            center.x + radius * math.cos(mid_angle),
+            center.y + radius * math.sin(mid_angle)
+        )
 
     return start_point, mid_point, end_point
 
@@ -105,42 +79,29 @@ def addTrackArc(
         width_mm,
         layer):
     arc = pcbnew.PCB_ARC(board)
-    arc.SetStart(pcbnew.VECTOR2I(int(startPoint_mm[0] * 1E6), int(startPoint_mm[1] * 1E6)))
+    arc.SetEnd(pcbnew.VECTOR2I(int(startPoint_mm[0] * 1E6), int(startPoint_mm[1] * 1E6)))
     arc.SetMid(pcbnew.VECTOR2I(int(midPoint_mm[0] * 1E6), int(midPoint_mm[1] * 1E6)))
-    arc.SetEnd(pcbnew.VECTOR2I(int(endPoint_mm[0] * 1E6), int(endPoint_mm[1] * 1E6)))
+    arc.SetStart(pcbnew.VECTOR2I(int(endPoint_mm[0] * 1E6), int(endPoint_mm[1] * 1E6)))
     arc.SetLayer(layer)
     arc.SetWidth(int(width_mm * 1e6))
     boardObject.Add(arc)
 
-if 0:
-    if __name__ == "__main__":
-        dxf_file_path = "StatorPCBCoil-Sketch006.dxf"
-        #all_entities = get_all_entities_from_dxf(dxf_file_path)
-        doc = ezdxf.readfile(dxf_file_path)
-        msp = doc.modelspace()
-
-        for entity in msp.query('ARC'):
-            #print(f"Type: {entity.dxftype()}, Handle: {entity.dxf.handle}")
-            data = calculateArcPoints(entity)
-            #print(data)
-            print(routeARC(data[0],data[1], data[2], 0, "F.Cu", "test"))
-
-
-
 board = pcbnew.GetBoard()
 
 if __name__ == "__main__":
-    dxf_file_path = "StatorPCBCoil-Sketch006.dxf"
+    #dxf_file_path = "StatorPCBCoil-Sketch006.dxf"
+
+    dxf_file_path = "coilPart_test.dxf"
     #all_entities = get_all_entities_from_dxf(dxf_file_path)
     doc = ezdxf.readfile(dxf_file_path)
     msp = doc.modelspace()
 
     for entity in msp.query('ARC'):
         start, mid, end = calculateArcPoints(entity)
-        addTrackArc(board,start,mid,end,0.02,pcbnew.F_Cu)
+        addTrackArc(board,start,mid,end,0.04,pcbnew.F_Cu)
     
     for entity in msp.query('LINE'):
         start, end = calculateLinePoints(entity)
-        addTrackLine(board,start,end,0.02,pcbnew.F_Cu)
+        addTrackLine(board,start,end,0.04,pcbnew.F_Cu)
     
 pcbnew.Refresh()
