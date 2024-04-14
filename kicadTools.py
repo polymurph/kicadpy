@@ -13,6 +13,12 @@ def rotate_resistors(board):
             #module.Rotate(pcbnew.wxPoint(0, 0), 900)  # 900 = 90 degrees CW
 '''    
 
+def setRefDesSilkVisibility(board, referenceDesignatorList, visible):
+    for ref in referenceDesignatorList:
+        footprint = board.FindFootprintByReference(ref)
+        refDes = footprint.Reference() 
+        refDes.SetVisible(visible)
+
 def rotateComponent(board, referenceDesignator, rotationAngleDEG):
     footprint = board.FindFootprintByReference(referenceDesignator)
     footprint.SetOrientationDegrees(rotationAngleDEG)
@@ -37,11 +43,15 @@ def placeComponentsInCircle(
         y_c,
         radius,
         relativeComponentOrientationDEG,
-        initialPlacementAngleDEG):
+        initialPlacementAngleDEG,
+        clockwise):
     
     N = len(referenceDesignators)
     angleStep_rad = 2 * np.pi / N
     angleIndex_rad = np.deg2rad(initialPlacementAngleDEG)
+
+    if clockwise:
+        angleStep_rad *= -1
 
     for component in referenceDesignators:
         x_p = radius * np.sin(angleIndex_rad) + x_c
