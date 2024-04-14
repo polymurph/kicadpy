@@ -1,11 +1,25 @@
 # Kicad Scripts
 Kicad Scripting toolbox
 
+## How to Script in Kicad?
+
+supports currently Kicad 7
+
+
 ## Questions
+
+### How to remove silkscreen from footprint
+
+[link](https://maskset.net/kicad-pcbnew-scripting-removing-ref-des-from-silk-screen.html)
+
+### How to execute a script?
+
+
+```exec(open('<file name>.py').read())```
 
 ### How to install Python modules for Kicad Scripting?
 
-https://www.reddit.com/r/KiCad/comments/unl7s1/how_to_install_python_packages_for_kicad_scripting/
+[Reddid source](https://www.reddit.com/r/KiCad/comments/unl7s1/how_to_install_python_packages_for_kicad_scripting/)
 
 
 For Windows go to the folder where Kicad program files are places on your system. In the designated folder open the command promt. There you can run ```pip install <module name>```
@@ -22,4 +36,5 @@ https://jeffmcbride.net/kicad-track-layout/
 ## Sources
 https://docs.kicad.org/doxygen-python-7.0/index.html
 
+[KiCad Developer Documentation](https://dev-docs.kicad.org/en/)
 
