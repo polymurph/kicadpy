@@ -6,7 +6,7 @@ Kicad Scripting toolbox
 supports currently Kicad 7
 
 
-## Questions
+## Questions For Kicad
 
 ### How to remove silkscreen from footprint
 
@@ -37,4 +37,10 @@ https://jeffmcbride.net/kicad-track-layout/
 https://docs.kicad.org/doxygen-python-7.0/index.html
 
 [KiCad Developer Documentation](https://dev-docs.kicad.org/en/)
+
+## Questions for Python
+
+### How to create a Python library
+
+[How to create a Python library by Kia Eisinga](https://medium.com/analytics-vidhya/how-to-create-a-python-library-7d5aea80cc3f)
 
