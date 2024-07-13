@@ -25,7 +25,7 @@ def setComponentToFront(
     boardObject,
     referenceDesignator,
     front):
-    footprint = board.FindFootprintByReference(referenceDesignator)
+    footprint = boardObject.FindFootprintByReference(referenceDesignator)
     if front:
         footprint.SetLayerAndFlip(pcbnew.F_Cu)
         return
@@ -242,4 +242,20 @@ def polarPlacePartList(
     
     for part in list:
         polarPlacePart(boardObject,part[0], part[1], part[2], part[3],part[4],part[5], part[6])
+
+def getPadCoordinate(
+        boardObject,
+        referenceDesignator,
+        padNumber):
+    footprint = boardObject.FindFootprintByReference(referenceDesignator)
+    for pad in footprint.Pads():
+        if pad.GetNumber() == padNumber:
+            pos = pad.GetPosition()
+            x = pcbnew.ToMM(pos.x)
+            y = pcbnew.ToMM(pos.y)
+            return x, y
+    return None
+
+            
+
 
