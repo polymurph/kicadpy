@@ -28,10 +28,10 @@ def setComponentToFront(
     footprint = boardObject.FindFootprintByReference(referenceDesignator)
     if front:
         footprint.SetLayerAndFlip(pcbnew.F_Cu)
-        #print("set to front")
         return
     footprint.SetLayerAndFlip(pcbnew.B_Cu)
-    #print("set to back")
+
+
 
 def setComponentsToFront(
     boardObject,
@@ -101,8 +101,8 @@ def addTrackArcAngles(
         layer,
         netName):
     # TODO: solve 180° offset and ccw fault
-    start_angle = math.radians(startAngle_DEG)
-    end_angle = math.radians(endAngle_DEG)
+    start_angle = math.radians(-startAngle_DEG)
+    end_angle = math.radians(-endAngle_DEG)
 
     if start_angle > end_angle and True:
         endAngle_DEG += math.radians(180)
@@ -140,7 +140,7 @@ def setRefDesSilkVisibility(board, referenceDesignatorList, visible):
 
 def rotateComponent(board, referenceDesignator, rotationAngleDEG):
     footprint = board.FindFootprintByReference(referenceDesignator)
-    footprint.SetOrientationDegrees(-rotationAngleDEG)
+    footprint.SetOrientationDegrees(rotationAngleDEG)
 
 def placeComponent(
         boardObject,
@@ -190,12 +190,11 @@ def placeComponentsInCircle(
         x_p += x_c
         y_p += y_c
         
+        placeComponent(board, component, x_p, y_p,(np.rad2deg(angleIndex_rad)+relativeComponentOrientationDEG), setToFront)
         
         if clockwise:
-            placeComponent(board, component, x_p, y_p,-(np.rad2deg(angleIndex_rad)+relativeComponentOrientationDEG), setToFront)
             angleIndex_rad -= angleStep_rad
             continue
-        placeComponent(board, component, x_p, y_p,-(np.rad2deg(angleIndex_rad)+relativeComponentOrientationDEG), setToFront)
         angleIndex_rad += angleStep_rad
 
 def placeComponentsInCircleWithAngle(
@@ -236,7 +235,7 @@ def polarPlacePart(
     x += centerX_mm
     y += centerY_mm
 
-    placeComponent(boardObject,referenceDesignator,x,y,partRotationAngle_DEG)
+    placeComponent(boardObject,referenceDesignator,x,y,partRotationAngle_DEG,setToFront)
 
 def polarPlacePartList(
         boardObject,
@@ -251,7 +250,7 @@ def polarPlacePartList(
     '''
     
     for part in list:
-        polarPlacePart(boardObject,part[0], part[1], part[2], part[3],part[4],part[5], part[6])
+        polarPlacePart(boardObject,part[0], part[1], part[2], part[3],part[4],-part[5], part[6])
 
 def getPadCoordinate(
         boardObject,
