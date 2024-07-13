@@ -4,7 +4,7 @@ import math
 
 def _KicadPol2cartDEG(phi,r):
     x = r*np.sin(np.radians(phi+90))
-    y = r*np.cos(np.radians(phi+90)) * -1
+    y = r*np.cos(np.radians(phi+90))
     return x, y
 
 def placeVia(
@@ -14,7 +14,7 @@ def placeVia(
     drillDiameter_mm,
     width_mm,
     netName):
-
+    # TODO implement netName definition
     via =pcbnew.PCB_VIA(boardObject)
     via.SetPosition(pcbnew.VECTOR2I(int((x_mm) * 1E6), int((y_mm) * 1E6)))
     via.SetDrill(int((drillDiameter_mm) * 1E6))
@@ -28,15 +28,17 @@ def setComponentToFront(
     footprint = boardObject.FindFootprintByReference(referenceDesignator)
     if front:
         footprint.SetLayerAndFlip(pcbnew.F_Cu)
+        #print("set to front")
         return
     footprint.SetLayerAndFlip(pcbnew.B_Cu)
+    #print("set to back")
 
 def setComponentsToFront(
     boardObject,
     referenceDesignatorList,
     front):
     for refDes in referenceDesignatorList:
-        setComponentsToFront(boardObject,
+        setComponentToFront(boardObject,
                              refDes,
                              front)
         
@@ -138,7 +140,7 @@ def setRefDesSilkVisibility(board, referenceDesignatorList, visible):
 
 def rotateComponent(board, referenceDesignator, rotationAngleDEG):
     footprint = board.FindFootprintByReference(referenceDesignator)
-    footprint.SetOrientationDegrees(rotationAngleDEG)
+    footprint.SetOrientationDegrees(-rotationAngleDEG)
 
 def placeComponent(
         boardObject,
@@ -150,7 +152,7 @@ def placeComponent(
     footprint = boardObject.FindFootprintByReference(referenceDesignator)
     rotateComponent(boardObject,referenceDesignator,rotationAngle_DEG)
     footprint.SetPosition(pcbnew.VECTOR2I(pcbnew.wxPoint(x_mm*1e6,y_mm*1e6)))
-    setComponentsToFront(boardObject,referenceDesignator, setToFront)
+    setComponentToFront(boardObject,referenceDesignator, setToFront)
 
 def relativePlaceComponent(
         boardObject,
@@ -171,7 +173,8 @@ def placeComponentsInCircle(
         radius,
         relativeComponentOrientationDEG,
         initialPlacementAngleDEG,
-        clockwise):
+        clockwise,
+        setToFront = True):
     
     N = len(referenceDesignators)
     angleStep_rad = 2 * np.pi / N
@@ -179,13 +182,20 @@ def placeComponentsInCircle(
 
     for component in referenceDesignators:
         # TODO: replace angleIndex_rad with angleIndex_rad + np.pi()
-        x_p = radius * np.sin(angleIndex_rad) + x_c
-        y_p = radius * np.cos(angleIndex_rad) + y_c
-        placeComponent(board, component, x_p, y_p,np.rad2deg(angleIndex_rad)+relativeComponentOrientationDEG)
+        #x_p = radius * np.sin(angleIndex_rad + 0.5*np.pi) + x_c
+        #y_p = radius * -np.cos(angleIndex_rad + 0.5*np.pi) + y_c
 
+        x_p, y_p = _KicadPol2cartDEG(np.rad2deg(angleIndex_rad),radius)
+
+        x_p += x_c
+        y_p += y_c
+        
+        
         if clockwise:
+            placeComponent(board, component, x_p, y_p,-(np.rad2deg(angleIndex_rad)+relativeComponentOrientationDEG), setToFront)
             angleIndex_rad -= angleStep_rad
             continue
+        placeComponent(board, component, x_p, y_p,-(np.rad2deg(angleIndex_rad)+relativeComponentOrientationDEG), setToFront)
         angleIndex_rad += angleStep_rad
 
 def placeComponentsInCircleWithAngle(
@@ -255,6 +265,8 @@ def getPadCoordinate(
             y = pcbnew.ToMM(pos.y)
             return x, y
     return None
+
+
 
             
 
