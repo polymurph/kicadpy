@@ -21,6 +21,25 @@ def placeVia(
     via.SetWidth(int((width_mm) * 1E6))
     boardObject.Add(via)
 
+def polarPlaceVia(
+    boardObject,
+    center_x_mm,
+    center_y_mm,
+    radius_mm,
+    angle_DEG,
+    drillDiameter_mm,
+    width_mm,
+    netName):
+    # TODO implement netName definition
+    via =pcbnew.PCB_VIA(boardObject)
+    x, y = _KicadPol2cartDEG(angle_DEG, radius_mm)
+    x += center_x_mm
+    y += center_y_mm
+    via.SetPosition(pcbnew.VECTOR2I(int((x) * 1E6), int((y) * 1E6)))
+    via.SetDrill(int((drillDiameter_mm) * 1E6))
+    via.SetWidth(int((width_mm) * 1E6))
+    boardObject.Add(via)
+
 def setComponentToFront(
     boardObject,
     referenceDesignator,
@@ -184,13 +203,18 @@ def placeComponentsInCircle(
         # TODO: replace angleIndex_rad with angleIndex_rad + np.pi()
         #x_p = radius * np.sin(angleIndex_rad + 0.5*np.pi) + x_c
         #y_p = radius * -np.cos(angleIndex_rad + 0.5*np.pi) + y_c
-
         x_p, y_p = _KicadPol2cartDEG(np.rad2deg(angleIndex_rad),radius)
 
         x_p += x_c
         y_p += y_c
         
-        placeComponent(board, component, x_p, y_p,(np.rad2deg(angleIndex_rad)+relativeComponentOrientationDEG), setToFront)
+        placeComponent(
+            board,
+            component,
+            x_p,
+            y_p,
+            relativeComponentOrientationDEG+(np.rad2deg(angleIndex_rad)),
+            setToFront)
         
         if clockwise:
             angleIndex_rad -= angleStep_rad
@@ -252,6 +276,15 @@ def polarPlacePartList(
     for part in list:
         polarPlacePart(boardObject,part[0], part[1], part[2], part[3],part[4],-part[5], part[6])
 
+def getPartPosition(
+        boardObject,
+        referenceDesignator):
+    footprint = boardObject.FindFootprintByReference(referenceDesignator)
+    pos = footprint.GetPosition()
+    x = pcbnew.ToMM(pos.x)
+    y = pcbnew.ToMM(pos.y)
+    return x, y
+
 def getPadCoordinate(
         boardObject,
         referenceDesignator,
@@ -264,6 +297,106 @@ def getPadCoordinate(
             y = pcbnew.ToMM(pos.y)
             return x, y
     return None
+
+def addViaToPin(
+        boardObject,
+        referenceDesignator,
+        pinNumber,
+        distanceToPinOrigin_mm,
+        viaDrillDiameter_mm,
+        viaWidth_mm,
+        trackWidth_mm):
+    
+    # TODO find yout if part is placeds top or bottom
+
+    # find out if it is right, left, abve or below the origin of the part
+    footprint = boardObject.FindFootprintByReference(referenceDesignator)
+    
+    partOrientation = footprint.GetOrientation().AsDegrees()
+    
+    # undo any rotation for absolute determinaton of pin location
+    rotateComponent(
+        boardObject,
+        referenceDesignator,
+        0)
+    
+    x,y = getPadCoordinate(boardObject,referenceDesignator,pinNumber)
+    
+    x_min = x
+    y_min = y
+    x_max = x
+    y_max = y
+    c_x = 0
+    c_y = 0
+    
+    
+    # get box corner coordinates and determine
+    # the shape of the footwprint
+    for pad in footprint.Pads():
+        pos = pad.GetPosition()
+        xi = pcbnew.ToMM(pos.x)
+        yi = pcbnew.ToMM(pos.y)
+        if x_min > xi:
+            x_min = xi
+            c_x += 1
+        if y_min > yi:
+            y_min = yi
+            c_y += 1
+        if x_max < xi:
+            x_max = xi
+            c_x += 1
+        if y_max < yi:
+            y_max = yi
+            c_y += 1
+
+    x,y = getPadCoordinate(boardObject,referenceDesignator,pinNumber)
+    
+    offsetAngle = 0 
+    
+    # TODO finish the c_x and c_y evaluation
+    # for the corner conditions
+    if x == x_max and y == y_max:
+        print("first quadrant corner")
+        if c_x > c_y:
+            offsetAngle = -90
+        else:
+            offsetAngle = 0
+    elif x == x_min and y == y_max:
+        print("seccond quadrant corner")
+    elif x == x_min and y == y_min:
+        print("third quadrant corner")
+    elif x == x_max and y == y_min:
+        print("fourth quadrant corner")
+    elif x == x_max:
+        print("first quadrant")
+        offsetAngle = 0
+    elif y == y_max:
+        print("seccond quadrant")
+        offsetAngle = -90
+    elif x == x_min:
+        print("third quadrant")
+        offsetAngle = -180 
+    elif y == y_min:
+        print("fourth quadrant")
+        offsetAngle = -270
+    
+    # rotate back
+    rotateComponent(
+        boardObject,
+        referenceDesignator,
+        partOrientation)
+    
+    x,y = getPadCoordinate(boardObject,referenceDesignator,pinNumber)
+    
+    xv, yv = _KicadPol2cartDEG(partOrientation + offsetAngle, distanceToPinOrigin_mm)
+    xv += x
+    yv += y
+    placeTrack(boardObject,x,y,xv,yv,trackWidth_mm,pcbnew.B_Cu,"")
+    placeVia(boardObject,xv,yv,viaDrillDiameter_mm,viaWidth_mm,"")
+    return xv, yv
+        
+    
+
 
 
 
