@@ -50,7 +50,11 @@ def setComponentToFront(
         return
     footprint.SetLayerAndFlip(pcbnew.B_Cu)
 
-
+def isComponentOnTopOfPCB(
+    boardObject,
+    referenceDesignator):
+    footprint = boardObject.FindFootprintByReference(referenceDesignator)
+    return not(footprint.IsFlipped())
 
 def setComponentsToFront(
     boardObject,
@@ -298,16 +302,12 @@ def getPadCoordinate(
             return x, y
     return None
 
-def addViaToPin(
-        boardObject,
-        referenceDesignator,
-        pinNumber,
-        distanceToPinOrigin_mm,
-        viaDrillDiameter_mm,
-        viaWidth_mm,
-        trackWidth_mm):
-    
-    # TODO find yout if part is placeds top or bottom
+def addTrackStubToPin(
+    boardObject,
+    referenceDesignator,
+    pinNumber,
+    distanceToPinOrigin_mm,
+    trackWidth_mm):
 
     # find out if it is right, left, abve or below the origin of the part
     footprint = boardObject.FindFootprintByReference(referenceDesignator)
@@ -339,14 +339,22 @@ def addViaToPin(
         if x_min > xi:
             x_min = xi
             c_x += 1
-        if y_min > yi:
+        elif y_min > yi:
             y_min = yi
             c_y += 1
-        if x_max < xi:
+        elif x_max < xi:
             x_max = xi
             c_x += 1
-        if y_max < yi:
+        elif y_max < yi:
             y_max = yi
+            c_y += 1
+        elif x_max == xi:
+            c_x += 1
+        elif x_min == xi:
+            c_x += 1
+        elif y_max == yi:
+            c_y += 1
+        elif y_min == yi:
             c_y += 1
 
     x,y = getPadCoordinate(boardObject,referenceDesignator,pinNumber)
@@ -358,13 +366,25 @@ def addViaToPin(
     if x == x_max and y == y_max:
         print("first quadrant corner")
         if c_x > c_y:
-            offsetAngle = -90
-        else:
             offsetAngle = 0
+        else:
+            offsetAngle = -90
     elif x == x_min and y == y_max:
         print("seccond quadrant corner")
+        if c_x > c_y:
+            offsetAngle = -180
+        elif c_x == c_y:
+            offsetAngle = -90
+        else:
+            offsetAngle = -90
     elif x == x_min and y == y_min:
         print("third quadrant corner")
+        if c_x > c_y:
+            offsetAngle = -270
+        elif c_x == c_y:
+            offsetAngle = 0
+        else:
+            offsetAngle = 0
     elif x == x_max and y == y_min:
         print("fourth quadrant corner")
     elif x == x_max:
@@ -372,7 +392,10 @@ def addViaToPin(
         offsetAngle = 0
     elif y == y_max:
         print("seccond quadrant")
-        offsetAngle = -90
+        if c_x == c_y:
+            offsetAngle = 0
+        else:
+            offsetAngle = -90
     elif x == x_min:
         print("third quadrant")
         offsetAngle = -180 
@@ -391,11 +414,30 @@ def addViaToPin(
     xv, yv = _KicadPol2cartDEG(partOrientation + offsetAngle, distanceToPinOrigin_mm)
     xv += x
     yv += y
-    placeTrack(boardObject,x,y,xv,yv,trackWidth_mm,pcbnew.B_Cu,"")
+    if isComponentOnTopOfPCB(boardObject,referenceDesignator):
+        placeTrack(boardObject,x,y,xv,yv,trackWidth_mm,pcbnew.F_Cu,"")
+    else:
+        placeTrack(boardObject,x,y,xv,yv,trackWidth_mm,pcbnew.B_Cu,"")
+    return xv, yv
+
+def addViaToPin(
+        boardObject,
+        referenceDesignator,
+        pinNumber,
+        distanceToPinOrigin_mm,
+        viaDrillDiameter_mm,
+        viaWidth_mm,
+        trackWidth_mm):
+    
+    xv,yv = addTrackStubToPin(
+        boardObject,
+        referenceDesignator,
+        pinNumber,
+        distanceToPinOrigin_mm,
+        trackWidth_mm)
     placeVia(boardObject,xv,yv,viaDrillDiameter_mm,viaWidth_mm,"")
     return xv, yv
         
-    
 
 
 
