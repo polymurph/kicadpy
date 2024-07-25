@@ -329,7 +329,6 @@ def addTrackStubToPin(
     c_x = 0
     c_y = 0
     
-    
     # get box corner coordinates and determine
     # the shape of the footwprint
     for pad in footprint.Pads():
@@ -372,19 +371,27 @@ def addTrackStubToPin(
     elif x == x_min and y == y_max:
         print("seccond quadrant corner")
         if c_x > c_y:
+            print("a")
             offsetAngle = -180
         elif c_x == c_y:
+            print("b")
+            print(referenceDesignator)
+            print(pinNumber)
             offsetAngle = -90
         else:
+            print("c")
             offsetAngle = -90
     elif x == x_min and y == y_min:
         print("third quadrant corner")
         if c_x > c_y:
-            offsetAngle = -270
+            print("debug1")
+            #offsetAngle = -270
+            offsetAngle = -180
         elif c_x == c_y:
-            offsetAngle = 0
+            print("debug2")
+            offsetAngle = -90
         else:
-            offsetAngle = 0
+            offsetAngle = -90
     elif x == x_max and y == y_min:
         print("fourth quadrant corner")
     elif x == x_max:
@@ -435,6 +442,11 @@ def addViaToPin(
         pinNumber,
         distanceToPinOrigin_mm,
         trackWidth_mm)
+    
+    print("refDes")
+    print(referenceDesignator)
+    print("pinNumber")
+    print(pinNumber)
     placeVia(boardObject,xv,yv,viaDrillDiameter_mm,viaWidth_mm,"")
     return xv, yv
         
