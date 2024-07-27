@@ -29,7 +29,7 @@ The following steps will show you how to set up kicadpy.
 >     For Windows the ```PyShell_pcbnew_startup.py``` file is normally located under ```~\AppData\Roaming\kicad\8.0```.
 >     For Linux it is under```~/.config/kicad/8.0/PyShell_pcbnew_startup.py```.
 
-    Open it up and insert the following code snippet.
+Open it up and insert the following code snippet.
 
     ``` Python
     import sys
@@ -39,9 +39,12 @@ The following steps will show you how to set up kicadpy.
     import kicadpy as kp
     sys.path.append(kp.getProjectPath())
     ```
-    Replace the ```~/AbsPathTo/kicadpy/``` with the prevoius copied absolute path to kicadpy.
+    
+Replace the 
+    
+```~/AbsPathTo/kicadpy/``` with the prevoius copied absolute path to kicadpy.
 
-    This code will append the kicadpy to the system paths at startup of the Kicad Console. It creates a link sothat kicadpy is callable.
+This code will append the kicadpy to the system paths at startup of the Kicad Console. It creates a link sothat kicadpy is callable.
 
 3.  Now lets test the implementation by opening up the kicad project and opening
     up the layout. Inside the
