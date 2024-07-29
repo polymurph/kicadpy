@@ -7,6 +7,8 @@ It is based on Kicad's scripting python API.
 
 It is still in its infant state and will undergo many changes and restructuring until the first stable version.
 
+visit the official documentation [here](https://polymurph.github.io/kicadpy/)
+
 ---
 
 # Setup of kicadpy
