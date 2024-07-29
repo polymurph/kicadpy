@@ -3,7 +3,7 @@ import numpy as np
 import kicadpy as kp
 import tools.mathUtils as mu
 
-def place(
+def add(
     x_mm,
     y_mm,
     drillDiameter_mm,

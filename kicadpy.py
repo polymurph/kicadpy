@@ -2,11 +2,13 @@ import os
 import imp
 
 import pcbnew
+import utils.utils as utils
+
 import layout.via as via
 import layout.footprint as footprint
 import layout.track as track
-import utils.utils as utils
 
+imp.reload(utils)
 imp.reload(via)
 imp.reload(footprint)
 imp.reload(track)
