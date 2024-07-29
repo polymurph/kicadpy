@@ -2,7 +2,6 @@
 
 ## Setup
 
-
 The following steps will show you how to set up kicadpy.
 
 Clone the repository in a directory of your choice
