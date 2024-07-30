@@ -96,10 +96,14 @@ def setPositionPolar(
         angle_DEG,
         radius_mm,
         formatCartesian = True):
-    #TODO:  to be tested
+    #TODO:  test the formatCartesian
     #NOTE:  maybe the formatCartesian flag needs to only be set once
     #       at pol2cartDEG and then no more
-    x,y = mu.pol2cartDEG(angle_DEG,radius_mm,formatCartesian)
+    #       Function works for formatCartesian = True
+    print("test")
+    #if formatCartesian:
+    #    angle_DEG *= -1
+    x,y = mu.pol2cartDEG(angle_DEG,radius_mm,not(formatCartesian))
     x += center_x_mm
     y += center_y_mm
 
@@ -110,24 +114,63 @@ def move(
         referenceDesignator_s,
         rel_x_mm,
         rel_y_mm,
-        rel_rotationAngle_DEG,
         formatCartesian = True):
     #TODO: to be tested
+    #NOTE: works with formatCartesian = True
     # Check if referenceDesignator_s is a string, convert to list if true
     if isinstance(referenceDesignator_s, str):
         referenceDesignator_s = [referenceDesignator_s]
     
     for refDes in referenceDesignator_s:
         footprint = kp._board.FindFootprintByReference(refDes)
-        orientation_angle = footprint.GetOrientation().AsDegrees() + rel_rotationAngle_DEG
         pos = footprint.GetPosition()
+        print(pcbnew.ToMM(pos.x))
+        print(pcbnew.ToMM(pos.y))
         x = pcbnew.ToMM(pos.x) + rel_x_mm
+        if formatCartesian:
+            pos.y *= -1
+        
         y = pcbnew.ToMM(pos.y) + rel_y_mm
-        footprint.SetOrientationDegrees(orientation_angle)
-        footprint.SetPosition(pcbnew.VECTOR2I(pcbnew.wxPoint(x*1e6,y*1e6)))
+
+        if formatCartesian:
+            y *= -1
+        
+        print(x)
+        print(y)
+        footprint.SetPosition(pcbnew.VECTOR2I(int(x*1e6),int(y*1e6)))
+
+def manipulate():
+    # combine move and rotate together here
+    print("manipulate")
+
+def place(
+        referenceDesignator,
+        x_mm,
+        y_mm,
+        orientation_DEG,
+        onTopOfPCB =True,
+        formatCartesian = True):
+    
+    setPosition(referenceDesignator,x_mm,y_mm,formatCartesian)
+    setOrientation(referenceDesignator,orientation_DEG,formatCartesian)
+    setToFront(referenceDesignator,onTopOfPCB)
+    
+def polarPlace(
+        referenceDesignator,
+        center_x_mm,
+        center_y_mm,
+        angle_DEG,
+        radius_mm,
+        orientation_DEG,
+        onTopOfPCB =True,
+        formatCartesian = True):
+    
+    setPositionPolar(referenceDesignator,center_x_mm,center_y_mm,angle_DEG,radius_mm,formatCartesian)
+    setOrientation(referenceDesignator,orientation_DEG)
+    setToFront(referenceDesignator,onTopOfPCB)
 
 def movePolar():
-    # TODO implement
+    # TODO implement + to be defined what should happen
     print("movePolar")
 
 def polarPlacePartList(
@@ -144,7 +187,7 @@ def polarPlacePartList(
     '''
     
     for part in list:
-        polarPlacePart(boardObject,part[0], part[1], part[2], part[3],part[4],-part[5], part[6])
+        setPositionPolar(part[0], part[1], part[2], part[3],part[4],-part[5], part[6])
 
 
 def placeInCircle(
