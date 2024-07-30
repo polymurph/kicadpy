@@ -80,7 +80,7 @@ def setPosition(
         x_mm,
         y_mm,
         formatCartesian = True):
-    #TODO: to be tested
+    #NOTE: tested it out. seems to work fine for now
     footprint = kp._board.FindFootprintByReference(referenceDesignator)
     
     if formatCartesian:
@@ -96,7 +96,9 @@ def setPositionPolar(
         angle_DEG,
         radius_mm,
         formatCartesian = True):
-    #TODO: to be tested
+    #TODO:  to be tested
+    #NOTE:  maybe the formatCartesian flag needs to only be set once
+    #       at pol2cartDEG and then no more
     x,y = mu.pol2cartDEG(angle_DEG,radius_mm,formatCartesian)
     x += center_x_mm
     y += center_y_mm
