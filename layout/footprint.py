@@ -6,7 +6,7 @@ import tools.mathUtils as mu
 def setToFront(
         referenceDesignator_s,
         front = True):
-
+    #TODO: to be tested
     # Check if referenceDesignator_s is a string, convert to list if true
     if isinstance(referenceDesignator_s, str):
         referenceDesignator_s = [referenceDesignator_s]
@@ -21,14 +21,14 @@ def setToFront(
 
 def isInFront(
     referenceDesignator):
-
+    #TODO: to be tested
     footprint = kp._board.FindFootprintByReference(referenceDesignator)
     return not(footprint.IsFlipped())
 
 def setReferencedesignatorSilkVisible(
         referenceDesignator_s,
         visible):
-
+    #TODO: to be tested
     # Check if referenceDesignator_s is a string, convert to list if true
     if isinstance(referenceDesignator_s, str):
         referenceDesignator_s = [referenceDesignator_s]
@@ -43,7 +43,7 @@ def setReferencedesignatorSilkVisible(
 def setOrientation(
         referenceDesignator_s,
         angle_DEG):
-    
+    #TODO: to be tested
     # Check if referenceDesignator_s is a string, convert to list if true
     if isinstance(referenceDesignator_s, str):
         referenceDesignator_s = [referenceDesignator_s]
@@ -56,13 +56,14 @@ def setOrientation(
 
 def getRotationInDEG(
         referenceDesignator):
+    #TODO: to be tested
     footprint = kp._board.FindFootprintByReference(referenceDesignator)
     return footprint.GetOrientation().AsDegrees()
 
 def rotate(
         referenceDesignator_s,
         rel_angle_DEG):
-
+    #TODO: to be tested
     # Check if referenceDesignator_s is a string, convert to list if true
     if isinstance(referenceDesignator_s, str):
         referenceDesignator_s = [referenceDesignator_s]
@@ -75,20 +76,33 @@ def rotate(
     kp.utils.autoRefresh()
 
 def setPosition(
-        referenceDesignator_s,
+        referenceDesignator,
         x_mm,
         y_mm,
         formatCartesian = True):
+    #TODO: to be tested
+    footprint = kp._board.FindFootprintByReference(referenceDesignator)
     
-    # Check if referenceDesignator_s is a string, convert to list if true
-    if isinstance(referenceDesignator_s, str):
-        referenceDesignator_s = [referenceDesignator_s]
-    
-    for refDes in referenceDesignator_s:
-        footprint = kp._board.FindFootprintByReference(refDes)
-        footprint.SetPosition(pcbnew.VECTOR2I(pcbnew.wxPoint(x_mm*1e6,y_mm*1e6)))
+    if formatCartesian:
+        y_mm *= -1
 
+    footprint.SetPosition(pcbnew.VECTOR2I(int(x_mm*1e6),int(y_mm*1e6)))
     kp.utils.autoRefresh()
+
+def setPositionPolar(
+        referenceDesignator,
+        center_x_mm,
+        center_y_mm,
+        angle_DEG,
+        radius_mm,
+        formatCartesian = True):
+    #TODO: to be tested
+    x,y = mu.pol2cartDEG(angle_DEG,radius_mm,formatCartesian)
+    x += center_x_mm
+    y += center_y_mm
+
+    setPosition(referenceDesignator,x,y,formatCartesian)
+
 
 def move(
         referenceDesignator_s,
@@ -96,7 +110,7 @@ def move(
         rel_y_mm,
         rel_rotationAngle_DEG,
         formatCartesian = True):
-    
+    #TODO: to be tested
     # Check if referenceDesignator_s is a string, convert to list if true
     if isinstance(referenceDesignator_s, str):
         referenceDesignator_s = [referenceDesignator_s]
@@ -110,10 +124,67 @@ def move(
         footprint.SetOrientationDegrees(orientation_angle)
         footprint.SetPosition(pcbnew.VECTOR2I(pcbnew.wxPoint(x*1e6,y*1e6)))
 
+def movePolar():
+    # TODO implement
+    print("movePolar")
+
+def polarPlacePartList(
+        boardObject,
+        list):
+    #TODO: to be tested
+    ''' Place all component in a list in polar system
+
+    The list must consist of the following structure.
+    [[reference Designator, center x mm, center y mm, radius DEG, angle DEG, part Rotation angel DEG, set to front],
+     [...],
+     ...]
+    
+    '''
+    
+    for part in list:
+        polarPlacePart(boardObject,part[0], part[1], part[2], part[3],part[4],-part[5], part[6])
+
+
+def placeInCircle(
+        referenceDesignators,
+        center_x_mm,
+        center_y_mm,
+        radius_mm,
+        relativeComponentOrientation_DEG,
+        initialPlacementAngle_DEG,
+        clockwise,
+        formatCartesian = True):
+    #TODO: to be tested
+    N = len(referenceDesignators)
+    angleStep_rad = 2 * np.pi / N
+    angleIndex_rad = np.deg2rad(initialPlacementAngle_DEG)
+
+    for component in referenceDesignators:
+        # TODO: replace angleIndex_rad with angleIndex_rad + np.pi()
+        #x_p = radius * np.sin(angleIndex_rad + 0.5*np.pi) + x_c
+        #y_p = radius * -np.cos(angleIndex_rad + 0.5*np.pi) + y_c
+        x_p, y_p = mu.pol2cartDEG(np.rad2deg(angleIndex_rad),radius_mm,formatCartesian)
+
+        x_p += center_x_mm
+        y_p += center_y_mm
+        
+        setPosition(
+            component,
+            x_p,
+            y_p,
+            formatCartesian)
+        
+        setOrientation(component,relativeComponentOrientation_DEG+(np.rad2deg(angleIndex_rad)))
+        
+        if clockwise:
+            angleIndex_rad -= angleStep_rad
+            continue
+        angleIndex_rad += angleStep_rad
+
 def getPadCoordinate(
         referenceDesignator,
         padNumber):
-    
+    #TODO: to be tested
     if isinstance(padNumber, int):
         padNumber = str(int)
 
@@ -137,7 +208,7 @@ def addTrackStubToPin(
     pinNumber,
     distanceToPinOrigin_mm,
     trackWidth_mm):
-
+    #TODO: to be tested
     # find out if pin is right, left, abve or below the origin of the part
     footprint = kp._board.FindFootprintByReference(referenceDesignator)
     
@@ -262,7 +333,7 @@ def addTrackStubAndViaToPin(
         viaDrillDiameter_mm,
         viaWidth_mm,
         trackWidth_mm):
-    
+    #TODO: to be tested
     xv,yv = addTrackStubToPin(
         boardObject,
         referenceDesignator,
